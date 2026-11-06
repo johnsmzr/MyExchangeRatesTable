@@ -9,7 +9,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # pinned: ubuntu-latest moved to 26.04, which no longer ships older Python
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout actions
@@ -20,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5 
         with:
-          python-version: '3.9'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Fetch and merge changes
@@ -43,7 +44,12 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -a -m "update"
+          # nothing new to commit (e.g. unchanged rates) is not a failure
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "no changes, skipping commit"
+          else
+            git commit -a -m "update"
+          fi
 
       - name: Push changes
         uses: ad-m/github-push-action@master
